@@ -26,12 +26,7 @@ class OpenAI(Model):
     def list_models(self):
         ## get all models for OpenAI API
         list_of_models = [model_.id for model_ in self._openai.Model.list()["data"]]
-        ## compare with supported models and return model_list
-        models = []
-        for model_ in self.supported_models:
-            if model_ in list_of_models:
-                models.append(model_)
-        return models
+        return [model_ for model_ in self.supported_models if model_ in list_of_models]
 
     def run(
         self,
@@ -71,7 +66,7 @@ class OpenAI(Model):
                 stop=stop,
             )
             data = {}
-            data.update(response["usage"])
+            data |= response["usage"]
             data["text"] = response["choices"][0]["text"]
             result.append(data)
 
