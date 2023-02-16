@@ -26,19 +26,21 @@ class Prompter:
     def get_template_variables(self, template_name: str) -> List[str]:
         template_source = self.environment.loader.get_source(self.environment, template_name)
         parsed_content = self.environment.parse(template_source)
-        undeclared_variables = meta.find_undeclared_variables(parsed_content)
-        return undeclared_variables
+        return meta.find_undeclared_variables(parsed_content)
 
     def generate_prompt(self, template_name, **kwargs) -> str:
         variables = self.get_template_variables(template_name)
-        variables_missing = []
-        for variable in variables:
-            if variable not in kwargs and variable not in self.allowed_missing_variables:
-                variables_missing.append(variable)
-        assert len(variables_missing) == 0, f"Missing required variables in template {variables_missing}"
+        variables_missing = [
+            variable
+            for variable in variables
+            if variable not in kwargs
+            and variable not in self.allowed_missing_variables
+        ]
+        assert (
+            not variables_missing
+        ), f"Missing required variables in template {variables_missing}"
         template = self.environment.get_template(template_name)
-        prompt = template.render(**kwargs).strip()
-        return prompt
+        return template.render(**kwargs).strip()
 
     def fit(self, template_name, **kwargs):
         prompt_variables = self.get_template_variables(template_name)
